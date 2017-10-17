@@ -290,7 +290,7 @@ def main(path):
             is_stupid = False  # if doing random movements not directed to push button.
             is_normal = False
             is_ref = False
-            pWrongButton = 0.85
+            pWrongButton = 0.85  # the prob of touching somewhere where the button is not placed, the "babbling" itself
         while k_success<nstep and k<nstep*1.2:  # TODO WHY this 1.2?
             delta = np.random.uniform(0.03, 0.07)
             possible_deltas = [i*delta for i in xrange(-1,2)]
@@ -329,8 +329,7 @@ def main(path):
                 is_normal = False
 
             elif not buffer_action:
-                if use_hardcoded_trajectory:
-                    if isExploring and i_target < len(targets):
+                if use_hardcoded_trajectory and random_motion and i_target < len(targets):
                     print("Following next hard-coded target", i_target)
                     target = targets[i_target]
                     buffer_action.append( action_to_goal(end_point_position, target, adapt_delta(end_point_position, button_pos_relative)) )
