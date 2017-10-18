@@ -38,10 +38,10 @@ from arm_scenario_experiments import Recorder, utils, baxter_utils
 IK_seed_positions = [-1.535, 1.491, -0.038, 0.194, 1.546, 1.497, -0.520]
 z_table = 0.76092828353
 button_pos_initial = [0.6, 0.30, 0.77] # abosulte
-_in_every_seq = [0.6, 0.30, 0.10] # reference point present in every sequence
+ref_point_in_every_seq = [0.6, 0.30, 0.10] # reference point present in every sequence, used in 5th prior
 
 change_table_color_per_sequence = True
-change_button_position_per_sequence = True
+change_button_position_per_sequence = False #True
 use_hardcoded_trajectory = False
 
 def main(path):
@@ -92,7 +92,7 @@ def main(path):
             # new_position[0] = 0.50
             # new_position[1] = 0.30
             # #====================================================
-            new_position[2] = 0  # Spawn above the ground to avoid collision, other wise the button move all the time
+            new_position[2] = 0  # Spawn above the ground to avoid collision, otherwise the button move all the time
             button.set_state(Point(*utils.change_CS(new_position, -baxter_position, quat_conj(baxter_orientation))),
                              orientation=button_orientation)
             time.sleep(1)  # Wait a little to let the button fall, to get true position
@@ -137,20 +137,20 @@ def main(path):
             print("lever restored to table")
 
     def move_limb_to_init():
+        # TODO: avoid start always in same place, start near the button and
+        # change in each sequence, to avoid learning only from one init position
         joints = None
         while not joints:
             # position = np.random.uniform(mins,maxs)
             # position[2] = mins[2] + 7*delta
-            if use_hardcoded_trajectory:
-                position = ref_point_in_every_seq
-            else:
-                # position = np.array([0.45,  0.55, 0.28]) #TODO: FIX, DOES NOT WORK WHEN NOT FOUND! and crashes the simulator provideing TIMEDOUT error
+            if use_hardcoded_trajectory: # position = np.array([0.45,  0.55, 0.28]) #TODO: FIX, DOES NOT WORK WHEN NOT FOUND! and crashes the simulator provideing TIMEDOUT error
                 position = np.array([0.3,  0.3, 0.3])
+            else:
+                position = ref_point_in_every_seq
             joints = baxter_utils.IK(limb, position, ee_orientation, IK_seed_positions)
         limb.move_to_joint_positions(joints)
         return position
 
-    # TODO right hand not hangling out of sight DONE
     def move_limb_right_to_init():
         joints = None
         # print(utils.point2array(limb_right.endpoint_pose()['position']))
@@ -184,7 +184,7 @@ def main(path):
     ee_orientation = baxter_utils.get_ee_orientation(limb)
     ee_orientation_right = baxter_utils.get_ee_orientation(limb_right)
 
-    # those are publishers specially made to be listenned by the recorder, so that we can publish and thus record exactly what we want when we want
+    # those are publishers specially made to be listened by the recorder, so that we can publish and thus record exactly what we want when we want
     action_pub = rospy.Publisher('/robot/limb/left/endpoint_action', Vector3Stamped, queue_size=1)
     button_pos_pub = rospy.Publisher('/button1/position', Point, queue_size=1)
 
@@ -212,7 +212,7 @@ def main(path):
     # maxs_resetting = np.array([0.80, 0.60, 0.35])
 
 
-    nstep = 200 #1 #250  # THIS IS THE NUMBER OF FRAMES = N OF ACTIONS PER DATA SEQUENCE (EPISODE)
+    nstep = 2 #50 #1 #250  # THIS IS THE NUMBER OF FRAMES = N OF ACTIONS PER DATA SEQUENCE (EPISODE)
     if use_hardcoded_trajectory: # DOES NOT END UP PUSHING BUTTON
         nstep = 50
         targets = []
@@ -239,8 +239,6 @@ def main(path):
         # targets.append([0.77,  0.55, 0.15])
         print 'Total target points for hard-coded trajectory of left arm: ',len(targets)
 
-
-
     # self.objects['button1'].set_base_color(rgba = [30,20,220])
     # lever test
     lever = arm_sim.Lever('lever1')
@@ -259,7 +257,8 @@ def main(path):
     # Actually starts the babbling
     nrecords = 1
     for nb_button_pos in range(nrecords):
-        if change_table_color_per_sequence:
+        if change_table_color_per_sequence:  # pub.publish("change_color") is the mechanism used
+        # by ROS Gazebo to communicate among packages (e.g. arm_scenario_simulator sends way of sending signals to arm_scenario_experiments, both in src/packages)
             pub.publish("change_color")
         if change_button_position_per_sequence:
             pub.publish("change position")
@@ -267,13 +266,14 @@ def main(path):
         subprocess.call(["rosrun", "arm_scenario_experiments", "button_init_pose"])
 
         recorder.new_bag('record_'+str(nb_button_pos))
-        if change_button_position_per_sequence: #TODO: check, needed even if not?
-            button_pos_relative, button_pos_absolute = move_button()
-            print("button absolute", button_pos_absolute, ' button relative pos: ', button_pos_relative)
+        #if change_button_position_per_sequence: #TODO: check, needed even if not?
+        button_pos_relative, button_pos_absolute = move_button()
+        print("Setting new button_pos_absolute: ", button_pos_absolute, ' button_pos_relative: ', button_pos_relative)
+
         end_point_position = move_limb_to_init()
         # move left limb into field of view
         move_limb_right_to_init()
-        restore_lever()
+        restore_lever() # TODO Is it needed or makes it dance?
         if not use_hardcoded_trajectory:
             reset_button(button_pos_absolute)
         else:  # TODO merge these two options in reset_button
@@ -304,8 +304,7 @@ def main(path):
             # communication
             k = k + 1
             actual_mins = np.array(mins)
-            if np.linalg.norm(button_pos_relative[0:2] - utils.point2array(limb.endpoint_pose()['position'])[
-                                                         0:2]) <= delta:
+            if np.linalg.norm(button_pos_relative[0:2] - utils.point2array(limb.endpoint_pose()['position'])[0:2]) <= delta:
                 actual_mins[2] -= delta
             if is_stupid:
                 actual_mins[2] -= 0.07  # so it can touch the table surface
@@ -359,7 +358,7 @@ def main(path):
                         count_exit = 0
 
                 elif is_stupid:
-                    print "Following the wrong button"
+                    print "Following to touch a wrong side of the table (where button is not placed)"
                     # print "hand position relative", end_point_position
                     # print "attempt_button_relative", attempt_button_relative
                     # buffer_action.append( action_to_goal(end_point_position, attempt_button_relative, adapt_delta(end_point_position, attempt_button_relative)) )
@@ -382,7 +381,7 @@ def main(path):
                                                -0.17]  # try to touch the table surface
 
                     # print("button absolute", attempt_button_absolute)
-                    print("button relative", attempt_button_relative)
+                    print("attempt_button_relative", attempt_button_relative)
                     # buffer_action.append( action_to_goal(end_point_position, attempt_button_relative, adapt_delta(end_point_position, attempt_button_relative)) )
                     buffer_action.append(action_to_goal(end_point_position, attempt_button_relative))
                     is_stupid = True
@@ -391,7 +390,7 @@ def main(path):
                     # buffer_action.append( action_to_goal(end_point_position, button_pos_relative, adapt_delta(end_point_position, button_pos_relative)) )
                     buffer_action.append(action_to_goal(end_point_position, button_pos_relative))
                     is_normal = True
-                    print("Acting normaly")
+                    print("Acting normally")
 
             action = buffer_action.pop(0)
             # import pdb; pdb.set_trace()
