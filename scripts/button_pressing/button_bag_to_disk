@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 '''This scripts aims at extracting the data contained in a bag to the disk.
 
@@ -56,25 +56,26 @@ def main(bag_path):
     writer.write_in_file('/recorded/robot/limb/left/endpoint_state', ['time', 'x', 'y', 'z'], effector_pos_handler, synchronized = True)
     writer.write_in_file('/recorded/robot/limb/left/endpoint_action', ['time', 'dx', 'dy', 'dz'], effector_action_handler, synchronized = True)
     writer.save_in_folder('/recorded/cameras/head_camera_2/image/compressed', synchronized = True)
+    writer.save_in_folder('/recorded/cameras/left_hand_camera/image/compressed', synchronized = True)
 
     button_pos = None
     bag = rosbag.Bag(bag_path)
     for topic, msg, t in bag.read_messages():
-        if topic == '/recorded/button1/position': 
+        if topic == '/recorded/button1/position':
             button_pos = msg
             break
     if not button_pos: raise Exception('No message from /recorded/button1/position found')
     bag.close()
-            
-    def check(lastMessages):            
-        if lastMessages['/recorded/button1/is_pressed'].data==1: 
+
+    def check(lastMessages):
+        if lastMessages['/recorded/button1/is_pressed'].data==1:
             distance = np.linalg.norm(point2array(button_pos)-point2array(lastMessages['/recorded/robot/limb/left/endpoint_state'].pose.position) )
             if distance > 0.08:
-                print('detected an anomaly at ', lastMessages['/recorded/button1/is_pressed'].header.stamp)   
+                print('detected an anomaly at ', lastMessages['/recorded/button1/is_pressed'].header.stamp)
                 print('distance :', distance)
-                lastMessages['/recorded/button1/is_pressed'].data = 0        
-   
-    writer.run(check) 
+                lastMessages['/recorded/button1/is_pressed'].data = 0
+
+    writer.run(check)
 
 
 def recursiveCall(path):
