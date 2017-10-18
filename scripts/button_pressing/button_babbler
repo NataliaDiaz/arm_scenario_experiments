@@ -37,12 +37,15 @@ from arm_scenario_experiments import Recorder, utils, baxter_utils
 # ['left_e0', 'left_e1', 'left_s0', 'left_s1', 'left_w0', 'left_w1', 'left_w2']
 IK_seed_positions = [-1.535, 1.491, -0.038, 0.194, 1.546, 1.497, -0.520]
 z_table = 0.76092828353
-button_pos_initial = [0.6, 0.30, 0.77] # abosulte
+button_pos_initial = [0.6, 0.30, 0.77] # absolute
 ref_point_in_every_seq = [0.6, 0.30, 0.10] # reference point present in every sequence, used in 5th prior
 
+################# PARAMETERS OF THE DATA RECORDER: ################
 change_table_color_per_sequence = True
-change_button_position_per_sequence = False #True
+change_button_position_per_sequence = True
 use_hardcoded_trajectory = False
+# IMPORTANT: Set N of records and frames per record in MAIN PROGRAM AT THE END
+####################################################################
 
 def main(path):
     # this is the expert controller. Given the actual position of the ee, it gives the optimal action to perform to get closer to the button
@@ -80,50 +83,55 @@ def main(path):
 
     # Function that randomly put the button on the table (useful to initialize a new sequence)
     def move_button():
-        z_fixed = 0.76092828353
-        # comment this block to fix button position
-        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<< BLOCK NON STATIC BUTTON>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   #########################################
-        while True:
-            new_position = np.random.uniform(mins, maxs)
+        z_fixed = 0.76092828353  #height of the table does not vary, or 0.77 in button_pos_initial
+        if change_button_position_per_sequence:         # comment this block to fix button position
+            # <<<<<<<<<<<<<<<<<<<<<<<<<<<<< BLOCK NON STATIC BUTTON>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   #########################################
+            # while True:  #TODO While while True???
+            new_position = np.random.uniform(mins, maxs) # np.ndarray
+            new_position[2] = z_fixed
+            print 'move_button: changing button to new position: ', new_position, '\n[mins and maxs are ', mins, ' - ', maxs,']'
+            button.set_state(position=Point(*new_position))
+            # <<<<<<<<<<<<<<<<<<<<<< BLOCK FOR NON STATIC BUTTON >>>>>>>>>>>>>>>>>>>>>>>>>>>>> #########################################
+        else:
+            # # theoretically button should be at
+            # # #============ FIXED BUTTON POSITION =================
+            # # print "Warning, button position is fixed, you can change that in the button_babbler file"
+            # # new_position[0] = 0.50
+            # # new_position[1] = 0.30
+            # # #====================================================
+            #     new_position[2] = 0  # Spawn above the ground to avoid collision, otherwise the button move all the time
+            #     button.set_state(Point(*utils.change_CS(new_position, -baxter_position, quat_conj(baxter_orientation))),
+            #                      orientation=button_orientation)
+            #     time.sleep(1)  # Wait a little to let the button fall, to get true position
+            #     real_position = utils.point2array(button.get_state().pose.position)
+            #     # sometimes the button falls downs the table or lands on other objects.. so add this test!
+            #     if (real_position[0] < maxs[0] and real_position[0] > mins[0]) and (
+            #                     real_position[1] < maxs[1] and real_position[1] > mins[1]):
+            #         if (abs(real_position[2] - z_fixed) < 0.01):
+            #             # pass
+            #             break
+            #         else:
+            #             print("Button not properly on the table, outside z_fixed")
+            #             print("z value is ", real_position[2])
+            #     else:
+            #         print("Button not properly on the table, outside x and y max/min values")
+            #         print("real position is", real_position)
+            button.set_state(position=Point(*button_pos_initial))
+            print 'move_button: changing button to FIXED button_pos_initial: ', button_pos_initial, type(button_pos_initial), '\n[mins and maxs are ', mins, ' - ', maxs,']'
+            # [mins and maxs are  [ 0.42 -0.1  -0.11]  -  [ 0.75  0.6   0.35] ]
 
-            # theoretically button should be at
-            # #============ FIXED BUTTON POSITION =================
-            # print "Warning, button position is fixed, you can change that in the button_babbler file"
-            # new_position[0] = 0.50
-            # new_position[1] = 0.30
-            # #====================================================
-            new_position[2] = 0  # Spawn above the ground to avoid collision, otherwise the button move all the time
-            button.set_state(Point(*utils.change_CS(new_position, -baxter_position, quat_conj(baxter_orientation))),
-                             orientation=button_orientation)
-            time.sleep(1)  # Wait a little to let the button fall, to get true position
-            real_position = utils.point2array(button.get_state().pose.position)
-            # sometimes the button falls downs the table or lands on other objects.. so add this test!
-            if (real_position[0] < maxs[0] and real_position[0] > mins[0]) and (
-                            real_position[1] < maxs[1] and real_position[1] > mins[1]):
-                if (abs(real_position[2] - z_fixed) < 0.01):
-                    # pass
-                    break
-                else:
-                    print("Button not properly on the table")
-                    print("z value is ", real_position[2])
-            else:
-                print("Button not properly on the table")
-                print("real position is", real_position)
-                # <<<<<<<<<<<<<<<<<<<<<< BLOCK FOR NON STATIC BUTTON >>>>>>>>>>>>>>>>>>>>>>>>>>>>> #########################################
+        # self.add_object( arm_sim.Button('button1').spawn( Point(x=0.6, y=0, z=0.78) ) )
+        # FIXING button position
+        # button_pos_initial = Point(x=0.6, y=0, z=0.78)  #TODO: old button position?
+        # if np.linalg.norm(button_pos_initial - utils.point2array(button.get_state().pose.position)) > 0.1:
+            # print("Button position changed, replacing it back")
 
-
-
-                # self.add_object( arm_sim.Button('button1').spawn( Point(x=0.6, y=0, z=0.78) ) )
-                # FIXING button position
-                # button_pos_initial = Point(x=0.6, y=0, z=0.78)
-                # if np.linalg.norm(button_pos_initial - utils.point2array(button.get_state().pose.position)) > 0.1:
-                # print("Button position changed, replacing it back")
-        button.set_state(position=Point(*button_pos_initial))
-        # print "button.get_state().pose.position", button.get_state().pose.position
         button_pos_from_topic = button.get_state().pose.position
         button_pos_absolute = utils.point2array(button_pos_from_topic)
         button_pos_relative = utils.change_CS(button_pos_absolute, baxter_position, baxter_orientation)
         button_pos_pub.publish(Point(*button_pos_relative))
+        print "button_pos_from_topic (button_pos_absolute): ",button_pos_absolute," relative: ", button_pos_relative
+
         return button_pos_relative, button_pos_absolute
 
     def restore_lever():
@@ -198,21 +206,23 @@ def main(path):
                                                             '/button1/position'])
 
 
-    # Here we define some parameters for the babbling
-    # DONE: change this delta randomly in the main loop
-    delta = 0.05
+    #################### PARAMETER CONFIGURATION FOR THE BUTTON BABBLING ###########################################################
+    nstep = 250  # THIS IS THE NUMBER OF FRAMES = N OF ACTIONS PER DATA SEQUENCE (EPISODE)  we keep 250 as in colorful75 dataset
+    nrecords = 1  # N of episodes = data recordings or sequences (hand position of baxter and button at init and color of table can vary per sequence)
+    delta = 0.05 # this delta changes randomly in the main loop
     possible_deltas = [i * delta for i in xrange(-1, 2)]
+    ################################################################################################################################
 
-    # Relative values
-    mins = np.array([0.42, -0.1, -0.11])# near left low
-    maxs = np.array([0.75, 0.60, 0.35]) #  far rightmost high
+    # Relative values.  3D physically plausible bounding box within reach of baxter's arm
+    # Coordinates are relative to the position where baxter is (Baxter is origin of coordinates?)
+    mins = np.array([0.42, -0.1, -0.11]) # near left low
+    maxs = np.array([0.75, 0.60, 0.35])  # far rightmost high
+    #TODO: get position of table and set broader ranges
         # [short side of table, long side, height]
         # when increasing, [forward ,left, high]
     # mins_resetting = np.array([0.40, -0.1, -0.11])
     # maxs_resetting = np.array([0.80, 0.60, 0.35])
 
-
-    nstep = 2 #50 #1 #250  # THIS IS THE NUMBER OF FRAMES = N OF ACTIONS PER DATA SEQUENCE (EPISODE)
     if use_hardcoded_trajectory: # DOES NOT END UP PUSHING BUTTON
         nstep = 50
         targets = []
@@ -255,7 +265,7 @@ def main(path):
     button_pos_relative, button_pos_absolute = move_button()
 
     # Actually starts the babbling
-    nrecords = 1
+
     for nb_button_pos in range(nrecords):
         if change_table_color_per_sequence:  # pub.publish("change_color") is the mechanism used
         # by ROS Gazebo to communicate among packages (e.g. arm_scenario_simulator sends way of sending signals to arm_scenario_experiments, both in src/packages)

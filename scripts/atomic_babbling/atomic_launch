@@ -11,13 +11,13 @@ from baxter_interface import CHECK_VERSION
 from arm_scenario_experiments import baxter_utils
 
 sub_folder = '_'.join(time.ctime().split())
-data_folder = '/home/masson/ros_bags/'+sub_folder # ------- change this folder to whatever you want
+data_folder = '/home/masson/ros_bags/'+sub_folder # ------- change this folder to whatever you want #TODO: Why is this still working?
 os.system('mkdir -p '+data_folder)
 
 recording_rate = 10
 cameras_fps = 50
 cameras_resolution = (320,200)
-cameras = ['/cameras/head_camera_2/image']#, '/cameras/right_hand_camera/image']
+cameras = ['/cameras/head_camera_2/image', '/cameras/left_hand_camera/image', '/cameras/right_hand_camera/image'] # left is the useful operative one in our arm_scenario_experiments
 
 _REAL_ROBOT = baxter_utils.is_real_robot()
 
@@ -32,6 +32,7 @@ def set_cameras():
     if _REAL_ROBOT:
         head_cam = baxter_interface.CameraController('head_camera')
         right_hand_cam = baxter_interface.CameraController('right_hand_camera')
+        left_hand_cam = baxter_interface.CameraController('left_hand_camera')
         head_cam.resolution = cameras_resolution
         head_cam.fps = cameras_fps
         right_hand_cam.resolution = cameras_resolution
