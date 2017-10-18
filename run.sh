@@ -5,7 +5,7 @@
 # See execution instructions in arm_scenario_experiments README https://github.com/NataliaDiaz/arm_scenario_experiments
 
 mkdir generated_data
-for i in {1..75}
+for i in {1..150}  # assumes some will fail, we need at least 75
 do
   #path_to_save="non_static_button/record_"  # takes name of var? TODO Fix!
   rosrun arm_scenario_experiments button_babbler here
