@@ -12,16 +12,17 @@ In arm_scenario_experiments run :
 ```
 1. If needed, check in after_install.sh file, if  'ros_ws' in the script should be changed to 'catkin_ws' because of the path names. This may be needed just once.
 2. In general,  open three terminals at ~/catkin_ws, each launching first
-
-
+```
 ./baxter.sh sim
-
+```
 
 then 
 
 
-a) roslaunch arm_scenario_simulator baxter_world.launch  
-
+a) 
+```
+roslaunch arm_scenario_simulator baxter_world.launch  
+```
 
 in the first terminal
 
@@ -34,8 +35,10 @@ Wait to see baxter and for the message:
 [ INFO] [1507731135.351602182, 109.944000000]: Gravity compensation was turned off
 
 
-b) rosrun arm_scenario_simulator spawn_objects_example 
-
+b) 
+```
+rosrun arm_scenario_simulator spawn_objects_example 
+```
 
 in the second terminal, and wait for [INFO] [WallTime: 1507731557.483257] [1447.362000] creation of cylinder2 successful
 Running. Ctrl-c to quit
@@ -43,15 +46,15 @@ Running. Ctrl-c to quit
 
 c) For more than 1 sequence:
 
-
+```
 ./run.sh
-
+```
 
 for one sequence: 
 
-
+```
 rosrun arm_scenario_experiments button_babbler here 
-
+```
 
 in the third terminal (if you use a script, you need to change 'here' in each iteration). 
 
