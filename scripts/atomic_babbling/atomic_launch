@@ -10,13 +10,23 @@ import baxter_interface
 from baxter_interface import CHECK_VERSION
 from arm_scenario_experiments import baxter_utils
 
+'''
+Supported Frame Size Modes: Frame sizes at which the cameras will operate.
+1280x800
+960x600
+640x400
+480x300
+384x240
+320x200
+'''
+
 sub_folder = '_'.join(time.ctime().split())
 data_folder = '/home/masson/ros_bags/'+sub_folder # ------- change this folder to whatever you want #TODO: Why is this still working?
 os.system('mkdir -p '+data_folder)
 
 recording_rate = 10
 cameras_fps = 50
-cameras_resolution = (320,200)
+cameras_resolution = [(640, 400), (640, 400)]#(320,200)  # this is not being effective, images are 800x800 for the arm and 900 and the head camera are 640x400 pixels
 cameras = ['/cameras/head_camera_2/image', '/cameras/left_hand_camera/image', '/cameras/right_hand_camera/image'] # left is the useful operative one in our arm_scenario_experiments
 
 _REAL_ROBOT = baxter_utils.is_real_robot()

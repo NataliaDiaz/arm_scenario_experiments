@@ -16,7 +16,7 @@ class BagDumper:
         self.dump_folder = dump_folder or os.path.realpath(os.path.splitext(bag_path)[0])
         os.system('mkdir -p '+self.dump_folder)
         self.synchronized_topics = set()
-        self.initialized = set() 
+        self.initialized = set()
         self.initializers = {}
         self.actions = {}
         self.lastMessage = {}
@@ -27,7 +27,7 @@ class BagDumper:
 
     def __del__(self):
         self.launch.stop()
-         
+
 
     def run(self, check = None):
         # first check if the bag is corrupted
@@ -48,7 +48,7 @@ class BagDumper:
                 if rospy.is_shutdown():break
                 if topic not in self.initialized:
                     self.initializers[topic]()
-                    self.initialized.add(topic)   
+                    self.initialized.add(topic)
 
                 if self.lastMessage[topic]:
                     time = 'unknown'
@@ -83,14 +83,14 @@ class BagDumper:
         for topic in topics:
             msg = self.lastMessage[topic]
             self.actions[topic](msg)
-            self.lastMessage[topic] = None    
+            self.lastMessage[topic] = None
 
 
-    def save_in_folder(self, topic, folder=None, synchronized = False): 
-        if synchronized: self.synchronized_topics.add(topic) 
+    def save_in_folder(self, topic, folder=None, synchronized = False):
+        if synchronized: self.synchronized_topics.add(topic)
         folder = folder or os.path.join(self.dump_folder, topic.strip('/').replace('/','_') )
         time_file = os.path.join(folder,'time.txt')
-        
+
         def initializer():
             if os.path.isdir(folder): shutil.rmtree(folder)
             os.system('mkdir -p '+folder)
@@ -110,7 +110,7 @@ class BagDumper:
         prefix = '/disk_writer_'+str(time.time()).replace('.','_')
         new_topic = (prefix+topic).replace('//','/')
         new_base_topic = (prefix+base_topic).replace('//','/')
-        
+
         full_filename_format = os.path.join(folder, 'frame%05i.jpg')
         arg = 'image:='+new_base_topic+compressed+' _sec_per_frame:=0 _filename_format:='+full_filename_format
         rec = self.launch.launch(roslaunch.core.Node('image_view', 'extract_images', args=arg ))

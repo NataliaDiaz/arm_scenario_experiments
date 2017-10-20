@@ -12,7 +12,7 @@ import rospy
 This fix script is made to reformat bag files that have been recording raw image topics instead of compressed image topics.
 It takes a folder of bag files containing raw image topics and:
     replay the bags,
-    republish the raw image topics using the image_transport package (which automatically creates the corresponding compressed topics) 
+    republish the raw image topics using the image_transport package (which automatically creates the corresponding compressed topics)
     and then run the recorder on the compressed-version of the republished  image topics
 '''
 
