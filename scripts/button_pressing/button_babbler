@@ -41,10 +41,10 @@ button_pos_initial = [0.6, 0.30, 0.77] # absolute
 ref_point_in_every_seq = [0.6, 0.30, 0.10] # reference point present in every sequence, used in 5th prior
 
 ################# PARAMETERS OF THE DATA RECORDER: ################
-change_table_color_per_sequence = False #True
+change_table_color_per_sequence = True #False
 change_button_position_per_sequence = True
 use_hardcoded_trajectory = False
-# IMPORTANT: Set N of records and frames per record in MAIN PROGRAM AT THE END
+# IMPORTANT: Set N of records and frames per record in MAIN PROGRAM AT THE END. 
 ####################################################################
 
 def main(path):
@@ -117,7 +117,7 @@ def main(path):
             #         print("Button not properly on the table, outside x and y max/min values")
             #         print("real position is", real_position)
             button.set_state(position=Point(*button_pos_initial))
-            print 'move_button: changing button to FIXED button_pos_initial: ', button_pos_initial, type(button_pos_initial), '\n[mins and maxs are ', mins, ' - ', maxs,']'
+            print 'move_button: changing button to FIXED button_pos_initial: ', button_pos_initial
             # [mins and maxs are  [ 0.42 -0.1  -0.11]  -  [ 0.75  0.6   0.35] ]
 
         # self.add_object( arm_sim.Button('button1').spawn( Point(x=0.6, y=0, z=0.78) ) )
