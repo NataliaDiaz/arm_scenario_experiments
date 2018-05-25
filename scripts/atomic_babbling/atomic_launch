@@ -10,6 +10,16 @@ import baxter_interface
 from baxter_interface import CHECK_VERSION
 from arm_scenario_experiments import baxter_utils
 
+'''
+Supported Frame Size Modes: Frame sizes at which the cameras will operate.
+1280x800
+960x600
+640x400
+480x300
+384x240
+320x200
+'''
+
 sub_folder = '_'.join(time.ctime().split())
 data_folder = '/home/masson/ros_bags/' + sub_folder  # ------- change this folder to whatever you want
 os.system('mkdir -p ' + data_folder)
@@ -37,6 +47,7 @@ def set_cameras():
     if _REAL_ROBOT:
         head_cam = baxter_interface.CameraController('head_camera')
         right_hand_cam = baxter_interface.CameraController('right_hand_camera')
+        left_hand_cam = baxter_interface.CameraController('left_hand_camera')
         head_cam.resolution = cameras_resolution
         head_cam.fps = cameras_fps
         right_hand_cam.resolution = cameras_resolution

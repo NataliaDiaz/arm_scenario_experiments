@@ -92,6 +92,12 @@ def findClosestAction(action, actions):
     action_idx = np.argmin(distances)
     return actions[action_idx]
 
+################# PARAMETERS OF THE DATA RECORDER: ################
+change_table_color_per_sequence = True #False
+change_button_position_per_sequence = True
+use_hardcoded_trajectory = False
+# IMPORTANT: Set N of records and frames per record in MAIN PROGRAM AT THE END.
+####################################################################
 
 def main(path):
 
@@ -361,6 +367,7 @@ def main(path):
             # if is_stupid:
             #     actual_mins[2] -= 0.07  # so it can touch the table surface
 
+            # control
             if button.is_pressed():
                 min_max_choice = [mins, maxs]
                 # Choose a location at random
@@ -449,7 +456,7 @@ def main(path):
                 recorder.dump_all()
                 left_arm.move_to_joint_positions(joints, timeout=3)
 
-        wait_for_messages(excepts=['/button1/position', '/robot/limb/left/endpoint_action'])
+        wait_for_messages(excepts=['/button1/position','/robot/limb/left/endpoint_action']) # TODO: add here also left hand camera? why except these two topics only?
         recorder.dump_all()
         recorder.close_bag()
         print("Record {} took {:.2f}s".format(idx_record, time.time() - start_time))
@@ -460,7 +467,7 @@ if __name__ == "__main__":
     parser.add_argument('path', type=str, help="path to bag file in which data will be recorded")
     args = parser.parse_args(rospy.myargv()[1:])
 
-    print("Initializing babbler node... ")
+    print("Initializing button_babbler node... ")
     rospy.init_node("learning_to_press_node")
     print("Getting robot state... ")
     rs = baxter_interface.RobotEnable(baxter_interface.CHECK_VERSION)

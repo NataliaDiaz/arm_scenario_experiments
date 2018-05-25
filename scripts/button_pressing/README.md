@@ -29,3 +29,9 @@ reward, observation, terminal = step(action)
 ```
 
 **More details in the doscstrings and comments of each script**
+
+
+
+
+** If all data generated is just .bag files, you can manually convert them records of images and .txt data with:
+rosrun arm_scenario_experiments extract_bags 
